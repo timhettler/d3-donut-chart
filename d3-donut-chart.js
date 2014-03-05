@@ -3,35 +3,35 @@ var DonutChart = function(selector, data, config) {
     throw 'Please provide a selector';
   }
   var _donutChart = this;
- 
+
   var settings = (function() {
      var defaults = {
       width: 450,
       height: 300,
-  
+
       radius: 100,
       innerRadius: 70,
       strokeColor: "#FFF",
       strokeWidth: 5,
-  
+
       enableLabels: true,
       labelGroupOffset: 20,
       labelColor: "#333",
-  
+
       labelValueText: function(arc) {
         return Math.floor((arc.value / _donutChart.totals) * 100) + "%";
       },
       labelValueOffset: 16, // from label-group
-  
+
       labelNameText: function(arc) {
         return arc.name + " (" + arc.value +")";
       },
       labelNameOffset: 0, // from label-group
-  
+
       tickColor: "#333",
       tickWidth: 1,
       tickOffset: [0,0,2,8], // [x1, x2, y1, y2]
-  
+
       easeFunction: 'cubic',
       animationDuration: 250,
       colors: d3.scale.category20()
@@ -44,7 +44,7 @@ var DonutChart = function(selector, data, config) {
   })();
   this.currentData = [];
   this.oldData = [];
-  
+
   // ** Animation Functions ** //
   var calculateAngles = function(start, end) {
     var _this = this,
@@ -144,7 +144,7 @@ var DonutChart = function(selector, data, config) {
 
   // wrap d3 natives with the data paramaters
   donut = d3.layout.pie().value(function(data) { return data[1]; }),
-  
+
   arc = d3.svg.arc()
     .startAngle(function(d) {
       return d.startAngle;
@@ -165,19 +165,19 @@ var DonutChart = function(selector, data, config) {
 
   // paths
   path_group = chart.append("svg:g")
-    .attr("class", "path-group")
+    .attr("class", "donut-chart__path-group")
     .attr("transform", "translate(" + (settings.width / 2) + "," + (settings.height / 2) + ")"),
 
   // labels
   label_group = chart.append("svg:g")
-    .attr("class", "label-group")
+    .attr("class", "donut-chart__label-group")
     .attr("transform", "translate(" + (settings.width / 2) + "," + (settings.height / 2) + ")");
 
   // public update method
   this.update = function(newData) {
     _donutChart.totals = 0;
     var paths, lines, valueLabels, nameLabels,
-    
+
       filterData = function(element, index, array) {
         element.name = newData[index][0];
         element.value = newData[index][1];
@@ -200,6 +200,9 @@ var DonutChart = function(selector, data, config) {
         .attr("fill", function(d, i) {
           return settings.colors(i);
         })
+        .attr("class", function(d, i) {
+            return "donut-chart__path donut-chart__path--"+i;
+        })
         .transition()
         .ease(settings.easeFunction)
         .duration(settings.animationDuration)
@@ -218,7 +221,7 @@ var DonutChart = function(selector, data, config) {
         .remove();
 
       if(settings.enableLabels) {
-        // draw tick marks 
+        // draw tick marks
         lines = label_group.selectAll("line").data(currentData);
 
         lines.enter()
@@ -246,18 +249,18 @@ var DonutChart = function(selector, data, config) {
         nameLabels = label_group.selectAll("text.name").data(currentData);
 
         positionLabels.call(nameLabels, settings.labelNameOffset)
-          .attr("class", "name")
+          .attr("class", "donut-chart__name")
           .text(settings.labelNameText);
 
         // draw label values
         valueLabels = label_group.selectAll("text.value").data(currentData);
 
         positionLabels.call(valueLabels, settings.labelValueOffset)
-          .attr("class", "value")
-          .text(settings.labelValueText);   
+          .attr("class", "donut-chart__value")
+          .text(settings.labelValueText);
       }
         return this;
-    
+
     } else {
       throw 'No usable data';
     }
